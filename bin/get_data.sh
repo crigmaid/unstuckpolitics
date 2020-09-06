@@ -11,8 +11,8 @@ initialize()
     set -e
     base_url=https://unstuckpolitics.com
     order_by="likes_received"
-    data_dir="../data"
-    #set +e; mkdir $data_dir; set -e
+    user_data_dir="../user-data"
+    set +e; mkdir $user_data_dir; set -e
 }
 
 get_all_user_data()
@@ -21,24 +21,24 @@ get_all_user_data()
     local i=0
     api_path="/directory_items.json?period=all&order=$order_by"
     curl_str="${base_url}${api_path}"
-    curl $curl_str > $data_dir/data$i.json
-    next_path=$(cat $data_dir/data$i.json | jq '.meta.load_more_directory_items' | tr -d "\"")
+    curl $curl_str > $user_data_dir/data$i.json
+    next_path=$(cat $user_data_dir/data$i.json | jq '.meta.load_more_directory_items' | tr -d "\"")
 
     # loop until directory_items is empty
     i=$((i+1))
     while [[ $i -gt 0 ]] 
     do
         curl_str="${base_url}${next_path}"
-        curl $curl_str > $data_dir/data$i.json
-        dir_items=$(cat $data_dir/data$i.json | jq '.directory_items[]')
+        curl $curl_str > $user_data_dir/data$i.json
+        dir_items=$(cat $user_data_dir/data$i.json | jq '.directory_items[]')
         if [[ -z $dir_items ]]
         then
             set -u
-            rm -f $data_dir/data$i.json
+            rm -f $user_data_dir/data$i.json
             set +u
             break
         fi
-        next_path=$(cat $data_dir/data$i.json | jq '.meta.load_more_directory_items' | tr -d "\"")
+        next_path=$(cat $user_data_dir/data$i.json | jq '.meta.load_more_directory_items' | tr -d "\"")
         i=$((i+1))
     done
 }
